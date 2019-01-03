@@ -50,18 +50,29 @@ app.get('/todos/:id', (req, res) => {
     
 });
 
+// POST /user
+app.post('/users', (req, res) => {
+    const { email, password } = req.body;
+    console.log(JSON.stringify(req.body, undefined, 2));
+    var user = new User({
+        email,
+        password
+    });
+    //User.findByToken
+    
+    user.save().then((u) => {
+        return user.generateAuthToken();
+    }).then((token) => {
+        console.log('New user saved: ', user)
+        res.header('x-auth', token).send(user); // 'x-*' custom header
+    }).catch((err) => {
+        console.log('Unable to save user', err);
+        res.status(400).send(err);
+    })
+})
+
 app.listen(port, () => {
     console.log(`Server is up on port ${port}`);
 });
-
-// var newUser = new User({
-//     email: 'wanqiao.wu@gmail.com'
-// });
-
-// newUser.save().then((doc) => {
-//     console.log('New user saved: ', doc)
-// }, (err) => {
-//     console.log('Unable to save user', err);
-// })
 
 module.exports = { app };

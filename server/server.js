@@ -6,6 +6,8 @@ var { mongoose } = require('./db/mongoose'); //This is critical because it works
 var { Todo } = require('./models/todo');
 var { User } = require('./models/user');
 
+var { authenticate } = require('./middleware/authenticate');
+
 var app = express();
 const port = process.env.PORT || 3000;
 
@@ -69,7 +71,12 @@ app.post('/users', (req, res) => {
         console.log('Unable to save user', err);
         res.status(400).send(err);
     })
-})
+});
+
+// Use the middileware authenticate to run the authentication check before sending back any response.
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 app.listen(port, () => {
     console.log(`Server is up on port ${port}`);

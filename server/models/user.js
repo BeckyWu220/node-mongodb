@@ -40,6 +40,24 @@ UserSchema.methods.toJSON = function () {
     } // This helps to repsonse certain fields and hide credential related fields when the mongoose object is converted to json object before sending back from the server.
 };
 
+// Model method (Similar to class method)
+UserSchema.statics.findByToken = function (token) {
+    var User = this;
+    var decoded; //decode JWT token
+
+    try {
+        decoded = jwt.verify(token, 'abc123');
+    } catch (error) {
+        return Promise.reject(error);
+    }
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    });
+};
+
 // Create a instance method for User instance.
 UserSchema.methods.generateAuthToken = function () {
     var user = this;

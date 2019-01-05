@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -57,6 +58,22 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth'
     });
 };
+
+// A mongoose middleware that will be executed before the action, which is 'save' to database in this case.
+UserSchema.pre('save', function (next) {
+    var user = this;
+    if (user.isModified('password')) {
+        // Only need to re-hash if the password in the database is going to change.
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next(); // Call this line to make the mongoose continue doing the action.
+            })
+        })
+    } else {
+        next();
+    }
+});
 
 // Create a instance method for User instance.
 UserSchema.methods.generateAuthToken = function () {

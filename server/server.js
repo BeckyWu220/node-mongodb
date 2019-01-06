@@ -13,10 +13,11 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     console.log(req.body); //HTTP Request body. If we can a POST to localhost:3000/todos with a json object, it will print the json object here.
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     }); //Then create a new todo instance with mongoose data model Todo.
     todo.save().then((doc) => {
         res.send(doc); //Save the new todo to database and send the todo back via response.
@@ -25,8 +26,10 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.get('/todos', (req, res) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({
+        _creator: req.user._id
+    }).then((todos) => {
         res.send({ todos }); //todos is an array, you can send it back as response directly, but if we would like to add more data to return at the same time, we cannot do it. 
         // Wrapping the array into a JSON object will help resolve this issue. 
     }).catch((e) => {
@@ -34,14 +37,17 @@ app.get('/todos', (req, res) => {
     });
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     console.log(req.params.id);
     if (!ObjectID.isValid(id)) {
         return res.status(404).send();
     }
 
-    Todo.findById(new ObjectID(id)).then((todo) => {
+    Todo.findOne({
+        _id: new ObjectID(id),
+        _creator: req.user._id 
+    }).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }

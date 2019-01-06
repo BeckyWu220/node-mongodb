@@ -48,7 +48,9 @@ UserSchema.statics.findByToken = function (token) {
 
     try {
         decoded = jwt.verify(token, 'abc123');
+        console.log(`Decoded Old Token: ${JSON.stringify(decoded, undefined, 2)}`);
     } catch (error) {
+        console.log('???');
         return Promise.reject(error);
     }
 
@@ -113,7 +115,20 @@ UserSchema.methods.generateAuthToken = function () {
     return user.save().then(() => {
         return token;
     });
-}
+};
+
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+
+    return user.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    });
+    //$pull is a method provided by mongodb, it removes certain item from an array if it matches certain cretia. 
+}; 
 
 var User = mongoose.model('User', UserSchema);
 

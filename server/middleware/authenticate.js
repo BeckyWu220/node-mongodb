@@ -18,6 +18,7 @@ var authenticate = (req, res, next) => {
 
         next(); // Since we changed the request here, so we need to use this line of code to make the code continue executing.
     }).catch((e) => {
+        console.log(`401 Error: ${e}`);
         res.status(401).send(e);
     });
 };

@@ -52,7 +52,7 @@ app.get('/todos/:id', (req, res) => {
     
 });
 
-// POST /user
+// POST /users
 app.post('/users', (req, res) => {
     const { email, password } = req.body;
     console.log(JSON.stringify(req.body, undefined, 2));
@@ -92,6 +92,15 @@ app.post('/users/login', (req, res) => {
         res.status(400).send();
     });
 })
+
+// User Logout
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send();
+    }, () => {
+        res.status(400).send();
+    })
+});
 
 app.listen(port, () => {
     console.log(`Server is up on port ${port}`);

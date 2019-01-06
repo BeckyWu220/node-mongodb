@@ -41,7 +41,7 @@ UserSchema.methods.toJSON = function () {
     } // This helps to repsonse certain fields and hide credential related fields when the mongoose object is converted to json object before sending back from the server.
 };
 
-// Model method (Similar to class method)
+// Model method (Similar to class method) Call it via User.findBytoken('token')
 UserSchema.statics.findByToken = function (token) {
     var User = this;
     var decoded; //decode JWT token
@@ -57,6 +57,26 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.token': token,
         'tokens.access': 'auth'
     });
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+    var User = this;
+
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject();
+        }
+
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password, user.password, (err, result) => {
+                if (result) {
+                    resolve(user); // Send the user along to pass back the user object to the caller of this function.
+                } 
+                reject();
+            })
+        
+        });
+    })
 };
 
 // A mongoose middleware that will be executed before the action, which is 'save' to database in this case.
@@ -75,7 +95,7 @@ UserSchema.pre('save', function (next) {
     }
 });
 
-// Create a instance method for User instance.
+// Create a instance method for User instance. Call it via user.generateAuthToken()
 UserSchema.methods.generateAuthToken = function () {
     var user = this;
     var access = 'auth';

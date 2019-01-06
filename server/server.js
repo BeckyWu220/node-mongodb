@@ -60,7 +60,6 @@ app.post('/users', (req, res) => {
         email,
         password
     });
-    //User.findByToken
     
     user.save().then((u) => {
         return user.generateAuthToken();
@@ -77,6 +76,22 @@ app.post('/users', (req, res) => {
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
 });
+
+// User Login POST /users/login { email, password }
+app.post('/users/login', (req, res) => {
+    const { email, password } = req.body;
+
+    //Verify user with this email exist in the db.
+    User.findByCredentials(email, password).then((user) => {
+        //res.send(user);
+        user.generateAuthToken().then((token) => {
+            //res.send(token);
+            res.header('x-auth', token).send(user);
+        });
+    }).catch(() => {
+        res.status(400).send();
+    });
+})
 
 app.listen(port, () => {
     console.log(`Server is up on port ${port}`);
